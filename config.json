@@ -1,7 +1,14 @@
 {
-  "electra_model": "google/electra-small-discriminator",
-  "distilbert_model": "distilbert-base-uncased",
-  "contracts": {
+  "xgb_params": {
+                "n_estimators": 100,
+                "learning_rate": 0.15,
+                "max_depth": 5,
+                "objective": "multi:softmax",
+                "num_class": 8,
+                "eval_metric": "mlogloss",
+                "random_state": 42
+  },
+    "contracts": {
     "contracts_path": "../data_old/",
     "secure_contracts": "BCCC-VolSCs-2023_Secure.csv",
     "vulnerable_contracts": "BCCC-VolSCs-2023_Vulnerable.csv",
