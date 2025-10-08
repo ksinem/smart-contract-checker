@@ -3,8 +3,6 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, accuracy_score
 import json
-import os
-#from utils import perform_random_oversampling
 import xgboost as xgb
 from xgboost import XGBClassifier
 from utils import save_embedding_vectors
@@ -19,7 +17,7 @@ with open("../config.json", "r") as c:
 def prepare_data_for_xgboost():
 
     sc_8_labels = pd.read_csv("../data_old/SC_Vuln_8label.csv", index_col=0)
-    print(f"Gesamter Datensatz: {len(sc_8_labels)} Zeilen.")
+    print(f"Total length of data: {len(sc_8_labels)}.")
 
     # save embedding vectors with function from utils.py before loading
     idx_to_encoding = {}
@@ -31,51 +29,40 @@ def prepare_data_for_xgboost():
     # X is 4285x300 vector
     # it comprises one 300d-vec per code
     labels = sc_8_labels['label_encoded'].values.astype(np.int32)
-    print(f"Daten erfolgreich vorbereitet. X-Shape: {X.shape}, y-Shape: {labels.shape}")
+    print(f"Data preparation successful. X-Shape: {X.shape}, y-Shape: {labels.shape}")
 
     return X, labels
 
 
 def train_and_evaluate_xgboost():
-    """
-    Hauptfunktion zum Trainieren und Evaluieren des XGBoost-Modells.
-    """
     X, y = prepare_data_for_xgboost()
 
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.2, random_state=42, stratify=y
     )
 
-    print("\n--- 1. Training des XGBoost-Modells (Gradient Boosting) ---")
+    print("\n--- 1. Training  ---")
 
-    model = XGBClassifier(
-        n_estimators=100,
-        learning_rate=0.1,
-        max_depth=5,
-        objective='multi:softmax',
-        num_class=8,
-        eval_metric='mlogloss',
-        random_state=42
-    )
+    model_params = config["xgb_params"]
+    model = XGBClassifier(**model_params)
 
     model.fit(X_train, y_train)
-    print("Training abgeschlossen.")
+    print("Training done.")
 
     y_pred = model.predict(X_test)
 
-    print("\n--- 2. Evaluierung des Modells ---")
+    print("\n--- 2. Evaluation ---")
 
     accuracy = accuracy_score(y_test, y_pred)
-    print(f"Genauigkeit (Accuracy): {accuracy:.4f}")
+    print(f"Accuracy: {accuracy:.4f}")
 
     report = classification_report(
         y_test,
         y_pred)
-    print("\nKlassifikationsbericht:")
+    print("\nClassification report:")
     print(report)
 
     print("-----------------------------------")
-    print("XGBoost-Modelltraining erfolgreich abgeschlossen.")
 
 
 if __name__ == "__main__":
