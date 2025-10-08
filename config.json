@@ -1,0 +1,10 @@
+{
+  "electra_model": "google/electra-small-discriminator",
+  "distilbert_model": "distilbert-base-uncased",
+  "contracts": {
+    "contracts_path": "../data_old/",
+    "secure_contracts": "BCCC-VolSCs-2023_Secure.csv",
+    "vulnerable_contracts": "BCCC-VolSCs-2023_Vulnerable.csv",
+    "contract8labels": "SC_Vuln_8label.csv"
+  }
+}
