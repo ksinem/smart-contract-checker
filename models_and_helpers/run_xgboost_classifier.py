@@ -36,8 +36,8 @@ def prepare_data_for_xgboost():
 
     ros = RandomOverSampler(random_state=42)
     X_resampled, y_resampled = ros.fit_resample(X, y)
-    print(f"Data preparation successful. "
-          f"Oversampling done. New number of instances: {X_resampled.shape[0]} "
+    print(f"Data preparation successful.\n"
+          f"Oversampling done. New number of instances: {X_resampled.shape[0]}\n"
           f"with {pd.Series(y_resampled).value_counts()[0]} instances per label. "
           f"X-Shape: {X_resampled.shape[0]}, y-Shape: {y_resampled.shape}")
 
@@ -46,23 +46,18 @@ def prepare_data_for_xgboost():
 
 def train_and_evaluate_xgboost():
     X, y = prepare_data_for_xgboost()
-
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.2, random_state=42, stratify=y
     )
 
     print("\n--- 1. Training  ---")
-
     model_params = config["xgb_params"]
     model = XGBClassifier(**model_params)
-
     model.fit(X_train, y_train)
     print("Training done.")
 
     y_pred = model.predict(X_test)
-
     print("\n--- 2. Evaluation ---")
-
     accuracy = accuracy_score(y_test, y_pred)
     print(f"Accuracy: {accuracy:.4f}")
 
@@ -71,9 +66,9 @@ def train_and_evaluate_xgboost():
         y_pred)
     print("\nClassification report:")
     print(report)
-
     print("-----------------------------------")
 
 
 if __name__ == "__main__":
     train_and_evaluate_xgboost()
+    # TODO test loop
