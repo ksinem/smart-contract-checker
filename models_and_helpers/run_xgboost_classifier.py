@@ -2,10 +2,13 @@ import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, accuracy_score
+from sklearn.preprocessing import StandardScaler
+from imblearn.pipeline import Pipeline
 import json
 import xgboost as xgb
 from xgboost import XGBClassifier
-from imblearn.over_sampling import RandomOverSampler
+from imblearn.over_sampling import RandomOverSampler, ADASYN
+from imblearn.combine import SMOTEENN
 from utils import (
     save_embedding_vectors,
     generate_pandas_report)
@@ -34,14 +37,11 @@ def prepare_data_for_xgboost():
     # it comprises one 300d-vec per code
     y = sc_8_labels['label_encoded'].values.astype(np.int32)
 
-    ros = RandomOverSampler(random_state=42)
-    X_resampled, y_resampled = ros.fit_resample(X, y)
-    print(f"Data preparation successful.\n"
-          f"Oversampling done. New number of instances: {X_resampled.shape[0]}\n"
-          f"with {pd.Series(y_resampled).value_counts()[0]} instances per label. "
-          f"X-Shape: {X_resampled.shape[0]}, y-Shape: {y_resampled.shape}")
 
-    return X_resampled, y_resampled
+    print(f"Data preparation successful.\n"
+          f"X-Shape: {X.shape}, y-Shape: {y.shape}")
+
+    return X, y
 
 
 def train_and_evaluate_xgboost():
@@ -50,10 +50,17 @@ def train_and_evaluate_xgboost():
         X, y, test_size=0.2, random_state=42, stratify=y
     )
 
+    print(f"Starting Random Oversampling to balance out the data...")
+    oversampler = RandomOverSampler(random_state=42)
+    X_resampled, y_resampled = oversampler.fit_resample(X_train, y_train)
+    print(f"Oversampling done. New number of instances: {X_resampled.shape[0]}\n"
+          f"with {pd.Series(y_resampled).value_counts()[0]} instances per label. "
+          f"X-Shape: {X_resampled.shape[0]}, y-Shape: {y_resampled.shape}")
+
     print("\n--- 1. Training  ---")
     model_params = config["xgb_params"]
     model = XGBClassifier(**model_params)
-    model.fit(X_train, y_train)
+    model.fit(X_resampled, y_resampled)
     print("Training done.")
 
     y_pred = model.predict(X_test)
@@ -64,11 +71,11 @@ def train_and_evaluate_xgboost():
     report = classification_report(
         y_test,
         y_pred)
-    print("\nClassification report:")
+    print("\n--- Classification report:")
     print(report)
     print("-----------------------------------")
 
 
 if __name__ == "__main__":
     train_and_evaluate_xgboost()
-    # TODO test loop
+
