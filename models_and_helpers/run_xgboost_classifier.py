@@ -21,6 +21,23 @@ with open("../config.json", "r") as c:
 
 
 def prepare_data_for_xgboost():
+    """
+        Loads smart contract data, retrieves pre-computed code embeddings,
+        and prepares the feature matrix (X) and target vector (y) for modeling.
+
+        The function reads a CSV file containing smart contract information and
+        loads corresponding Word2Vec-style embeddings from individual .npy files
+        based on the file path specified in the config.
+
+        Returns
+        -------
+        X : numpy.ndarray
+            The feature matrix, where each row is a 300-dimensional vector
+            representing an encoded smart contract. Shape is (N, 300).
+        y : numpy.ndarray
+            The target vector containing integer-encoded vulnerability labels.
+            Shape is (N,).
+        """
 
     sc_8_labels = pd.read_csv(str(config["data_path"]+config["contract8labels"]), index_col=0)
     #generate_pandas_report(sc_8_labels, "Smart contracts with 8 vulnerabilites")
@@ -45,6 +62,17 @@ def prepare_data_for_xgboost():
 
 
 def train_and_evaluate_xgboost():
+    """
+    Prepares the data, splits it, applies Random Oversampling to the training set,
+    trains an XGBoost model, and evaluates its performance on the test set.
+
+    The function uses parameters defined in the global 'config' and prints
+    the data balance status, training progress, final accuracy, and a
+    full classification report.
+
+    Note: Random Oversampling is used to address the class imbalance issue
+    by duplicating minority class samples.
+    """
     X, y = prepare_data_for_xgboost()
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.2, random_state=42, stratify=y
